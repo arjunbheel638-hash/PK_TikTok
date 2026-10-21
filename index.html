@@ -2,117 +2,76 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>PK TikTok - Desi TikTok</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PK TikTok - Pakistan's Own</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;color:#fff;font-family:Arial;overflow:hidden}
-header{position:fixed;top:0;width:100%;z-index:10;display:flex;justify-content:center;gap:20px;padding:15px;background:linear-gradient(#000, transparent);font-weight:bold}
-header span{opacity:0.6} header .active{opacity:1;border-bottom:2px solid #fff}
-.feed{height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory}
-.card{height:100vh;scroll-snap-align:start;position:relative;display:flex;justify-content:center;background:#111}
-.card video,.card img{width:100%;height:100%;object-fit:cover}
-.right{position:absolute;right:8px;bottom:120px;display:flex;flex-direction:column;align-items:center;gap:22px}
-.icon{width:50px;height:50px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.icon b{font-size:12px;margin-top:4px}
-.profile{width:50px;height:50px;border-radius:50%;border:2px solid #fff;background-size:cover;position:relative}
-.follow-btn{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:#fe2c55;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
-.bottom{position:absolute;bottom:15px;left:10px;right:70px}
-.bottom b{font-size:15px} .bottom p{font-size:14px;margin:5px 0;opacity:0.9}
-.music{font-size:13px;margin-top:8px;white-space:nowrap;overflow:hidden}
-.heart{font-size:35px;transition:0.2s} .heart.liked{color:#fe2c55;transform:scale(1.3)}
-/* Panels */
-.panel{position:fixed;bottom:-100%;left:0;width:100%;height:60%;background:#1c1c1e;border-radius:15px 15px 0 0;z-index:20;transition:0.3s;padding:15px}
-.panel.show{bottom:0}
-.panel-header{display:flex;justify-content:space-between;margin-bottom:15px}
-.comment-list{height:70%;overflow-y:auto}
-.comment{display:flex;gap:10px;margin-bottom:12px}
-.share-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;text-align:center;margin-top:20px}
-.share-grid div{font-size:12px}
+body{background:#000;color:#fff;font-family:system-ui,sans-serif;overflow:hidden;height:100vh;width:100vw}
+.feed{height:100vh;width:100vw;overflow-y:scroll;scroll-snap-type:y mandatory}
+.feed::-webkit-scrollbar{display:none}
+.video-card{height:100vh;width:100vw;position:relative;scroll-snap-align:start;background:#000;display:flex;align-items:center;justify-content:center}
+video{height:100%;width:100%;object-fit:cover}
+.overlay{position:absolute;bottom:0;left:0;right:0;padding:15px 15px 90px;background:linear-gradient(transparent,rgba(0,0,0,0.8))}
+.right-bar{position:absolute;right:10px;bottom:120px;display:flex;flex-direction:column;gap:20px;align-items:center;z-index:5}
+.action-btn{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center}
+.action-btn.liked{background:#fe2c55}
+.like-count{font-size:12px;margin-top:4px;text-align:center}
+.top-bar{position:absolute;top:0;left:0;right:0;padding:15px;display:flex;justify-content:space-between;align-items:center;z-index:10;background:linear-gradient(rgba(0,0,0,0.6),transparent)}
+.logo{font-weight:900;font-size:22px}.logo span{color:#25f4ee}.logo span:last-child{color:#fe2c55}
+.upload-btn{background:#fe2c55;border:none;color:#fff;padding:8px 16px;border-radius:4px;font-weight:700}
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;height:60px;background:#000;border-top:1px solid #222;display:flex;justify-content:space-around;align-items:center;z-index:10}
+.nav-item{font-size:11px;text-align:center;opacity:0.6}.nav-item.active{opacity:1}
+.upload-modal{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.upload-modal.show{display:flex}
+.modal-box{background:#1a1a1a;width:100%;max-width:380px;border-radius:16px;padding:20px}
+.modal-box input{width:100%;padding:12px;background:#2a2a2a;border:1px solid #333;border-radius:8px;color:#fff;margin-bottom:12px;font-size:14px}
+.modal-box button{width:100%;padding:12px;border:none;border-radius:8px;font-weight:700;margin-top:8px}
+.btn-post{background:#fe2c55;color:#fff}.btn-cancel{background:#2a2a2a;color:#fff}
 </style>
 </head>
 <body>
-
-<header><span class="active">For You</span><span>Following</span><span>PK 🇵🇰</span></header>
-
-<div class="feed" id="feed">
-  <!-- VIDEO 1 -->
-  <div class="card">
-    <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=500">
-    <div class="right">
-      <div class="icon"><div class="profile" style="background-image:url(https://i.pravatar.cc/100?img=5)"><div class="follow-btn" onclick="follow(this)">+</div></div><b>Follow</b></div>
-      <div class="icon" onclick="like(this)"><div class="heart">🤍</div><b class="like-count">12.3K</b></div>
-      <div class="icon" onclick="openComments()"><div style="font-size:32px">💬</div><b>2.1K</b></div>
-      <div class="icon" onclick="openShare()"><div style="font-size:32px">↗️</div><b>Share</b></div>
-      <div class="icon"><div style="font-size:30px">🎵</div></div>
-    </div>
-    <div class="bottom">
-      <b>@village_boy_786</b>
-      <p>Gaon ki subah ka maza hi kuch aur hai 🌾 #village #desi #paktok</p>
-      <div class="music">♫ Original Sound - Village Vibes • 12K videos</div>
-    </div>
-  </div>
-
-  <!-- VIDEO 2 -->
-  <div class="card">
-    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500">
-    <div class="right">
-      <div class="icon"><div class="profile" style="background-image:url(https://i.pravatar.cc/100?img=32)"><div class="follow-btn" onclick="follow(this)">+</div></div></div>
-      <div class="icon" onclick="like(this)"><div class="heart">🤍</div><b class="like-count">45K</b></div>
-      <div class="icon" onclick="openComments()"><div style="font-size:32px">💬</div><b>8.4K</b></div>
-      <div class="icon" onclick="openShare()"><div style="font-size:32px">↗️</div><b>Share</b></div>
-    </div>
-    <div class="bottom">
-      <b>@desi_foodie</b>
-      <p>Aj Desi Handi banayi 😋 Recipe chahiye? Comment karo! #food #pakistani</p>
-      <div class="music">♫ Trending - Punjabi Song</div>
-    </div>
-  </div>
-</div>
-
-<!-- COMMENT PANEL -->
-<div class="panel" id="commentPanel">
-  <div class="panel-header"><b>2,134 Comments</b><span onclick="closeAll()">✕</span></div>
-  <div class="comment-list" id="commentList">
-    <div class="comment"><b>@ali:</b> MashAllah zabardast ❤️</div>
-    <div class="comment"><b>@sana:</b> Village life is best life 🌾</div>
-  </div>
-  <div style="display:flex;gap:8px;margin-top:10px"><input id="commentInput" placeholder="Add comment..." style="flex:1;padding:10px;border-radius:20px;border:0;background:#2c2c2e;color:#fff"><button onclick="addComment()" style="background:#fe2c55;color:#fff;border:0;padding:10px 15px;border-radius:20px">Send</button></div>
-</div>
-
-<!-- SHARE PANEL -->
-<div class="panel" id="sharePanel">
-  <div class="panel-header"><b>Share to</b><span onclick="closeAll()">✕</span></div>
-  <div class="share-grid">
-    <div onclick="shareWA()">📱<br>WhatsApp</div>
-    <div onclick="shareCopy()">🔗<br>Copy Link</div>
-    <div>📘<br>Facebook</div>
-    <div>✈️<br>Telegram</div>
-    <div>💾<br>Save</div>
-    <div>🚫<br>Not Interested</div>
-    <div>🚩<br>Report</div>
-  </div>
-</div>
-
+<div class="top-bar"><div class="logo"><span>PK</span> <span>TikTok</span></div><button class="upload-btn" onclick="openUpload()">+ Upload</button></div>
+<div class="feed" id="feed"><div style="text-align:center;padding-top:50vh">Loading PK Videos...</div></div>
+<div class="bottom-nav"><div class="nav-item active">🏠<br>Home</div><div class="nav-item">🔍<br>Discover</div><div class="nav-item" onclick="openUpload()">➕<br>Upload</div><div class="nav-item">💬<br>Inbox</div><div class="nav-item">👤<br>Me</div></div>
+<div class="upload-modal" id="uploadModal"><div class="modal-box"><h3>Upload PK Video</h3><input id="vTitle" placeholder="Video Title"><input id="vUser" placeholder="Your Name @username"><input id="vUrl" placeholder="Video URL mp4: https://www.w3schools.com/html/mov_bbb.mp4"><button class="btn-post" onclick="postVideo()">Post to PK TikTok 🇵🇰</button><button class="btn-cancel" onclick="closeUpload()">Cancel</button></div></div>
 <script>
-function like(el){
-  let h=el.querySelector('.heart');
-  let c=el.querySelector('.like-count');
-  if(h.classList.contains('liked')){h.classList.remove('liked');h.innerHTML='🤍';}
-  else{h.classList.add('liked');h.innerHTML='❤️'; h.style.transform='scale(1.4)'; setTimeout(()=>h.style.transform='scale(1)',200)}
+const SUPABASE_URL='https://yfutzbzfpzhwhxcqhudk.supabase.co';
+const SUPABASE_KEY='sb_publishable_Gf0kknydWxFco5IAVSUUaw_7vug6T3I';
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let videos=[];
+async function loadVideos(){
+ const {data,error}=await supabaseClient.from('videos').select('*').order('created_at',{ascending:false});
+ if(error||!data||data.length==0){videos=[{title:"Welcome to PK TikTok 🇵🇰 - Upload Dabao!",username:"@pktiktok_official",video_url:"https://www.w3schools.com/html/mov_bbb.mp4",likes:1250}];}else{videos=data;}
+ renderFeed();
 }
-function follow(btn){btn.innerHTML='✓';btn.style.background='#fff';btn.style.color='#000';}
-function openComments(){document.getElementById('commentPanel').classList.add('show')}
-function openShare(){document.getElementById('sharePanel').classList.add('show')}
-function closeAll(){document.getElementById('commentPanel').classList.remove('show');document.getElementById('sharePanel').classList.remove('show')}
-function addComment(){
-  let inp=document.getElementById('commentInput');
-  if(!inp.value) return;
-  let div=document.createElement('div'); div.className='comment'; div.innerHTML=`<b>@you:</b> ${inp.value}`;
-  document.getElementById('commentList').appendChild(div); inp.value='';
+function renderFeed(){
+ const feed=document.getElementById('feed');feed.innerHTML='';
+ videos.forEach((v,i)=>{
+  const card=document.createElement('div');card.className='video-card';
+  card.innerHTML=`<video src="${v.video_url}" loop playsinline onclick="this.paused?this.play():this.pause()"></video><div class="overlay"><div style="opacity:0.8;font-size:14px">${v.username}</div><div style="font-weight:600">${v.title}</div></div><div class="right-bar"><div><button class="action-btn ${v._liked?'liked':''}" onclick="likeVideo(${i},this)">❤️</button><div class="like-count">${v.likes||0}</div></div><button class="action-btn">💬</button><button class="action-btn">↗️</button></div>`;
+  feed.appendChild(card);
+ });
+ const observer=new IntersectionObserver((entries)=>{entries.forEach(e=>{const vid=e.target.querySelector('video');if(e.isIntersecting)vid.play().catch(()=>{});else vid.pause();});},{threshold:0.6});
+ document.querySelectorAll('.video-card').forEach(c=>observer.observe(c));
 }
-function shareCopy(){navigator.clipboard.writeText(window.location.href); alert('Link Copied!'); closeAll()}
-function shareWA(){window.open('https://wa.me/?text='+window.location.href); closeAll()}
+async function likeVideo(idx,btn){
+ const v=videos[idx];if(v._liked)return;v._liked=true;v.likes=(v.likes||0)+1;btn.classList.add('liked');btn.nextElementSibling.textContent=v.likes;
+ if(v.id){await supabaseClient.from('videos').update({likes:v.likes}).eq('id',v.id);}
+}
+function openUpload(){document.getElementById('uploadModal').classList.add('show')}
+function closeUpload(){document.getElementById('uploadModal').classList.remove('show')}
+async function postVideo(){
+ const title=document.getElementById('vTitle').value.trim();
+ const username=document.getElementById('vUser').value.trim()||'@pakistani_user';
+ const url=document.getElementById('vUrl').value.trim();
+ if(!title||!url){alert('Title aur Video URL zaroori hai');return}
+ const {data,error}=await supabaseClient.from('videos').insert([{title,username,video_url:url,likes:0}]).select();
+ if(error){alert('Error: '+error.message);return}
+ closeUpload();document.getElementById('vTitle').value='';document.getElementById('vUrl').value='';
+ await loadVideos();alert('Mabrook! PK TikTok pe post ho gaya 🇵🇰');
+}
+loadVideos();
 </script>
 </body>
 </html>
